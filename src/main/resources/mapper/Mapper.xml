@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot1.mapper.Mapper">
+
+    <select id="login" resultType="com.example.springboot1.model.User">
+        select * from xmxj.user where name = #{userName}
+    </select>
+
+    <update id="insertSession">
+        update xmxj.user set
+            session = #{ session }
+        where name = #{ name }
+    </update>
+
+    <update id="updateUser" >
+        update xmxj.user set
+            name = #{name},
+            phone = #{phone},
+            address = #{address}
+        where id = #{id}
+    </update>
+
+    <select id="queryCompanyByUser" resultMap="companyMap">
+        select
+            company.id,
+            company.company_name,
+            company.faren_id,
+            company.company_type
+        from company left join xmxj.user
+                on xmxj.user.company_id = company.id
+        where xmxj.user.id = #{userId}
+    </select>
+
+    <resultMap id="companyMap" type="com.example.springboot1.model.Company">
+        <result property="id" column="id"/>
+        <result property="company_name" column="company_name"/>
+        <result property="faren" column="faren_id"/>
+        <result property="type" column="company_type"/>
+        <result property="companyDec" column="company_dec"/>
+    </resultMap>
+
+    <select id="queryCompany" resultMap="companyMap">
+        select * from company
+        where
+            <if test="companyType != null"> company_type = #{companyType} AND</if>
+        <if test="companyName != null"> company_name = #{companyName} AND</if>
+            1=1
+    </select>
+
+    <resultMap id="itemMap" type="com.example.springboot1.model.Item">
+        <result property="id" column="id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="companyId" column="company_id"/>
+        <result property="manageId" column="manage_id"/>
+        <result property="saferOfficeId" column="safer_office_id"/>
+        <result property="responserId" column="responser_id"/>
+        <result property="state" column="state"/>
+    </resultMap>
+
+    <select id="queryItems" resultMap="itemMap">
+        select * from item
+        where
+            <if test="itemName != null"> item_name = #{itemName} and</if>
+            <if test="userId != null">
+                #{userId} = manage_id
+                or FIND_IN_SET( #{userId},safer_office_id )
+                or FIND_IN_SET( #{userId},responser_id )
+                and
+            </if>
+            1=1
+
+    </select>
+
+    <select id="queryCountDanger" resultType="Integer">
+        select count(*)
+        from danger
+        where
+            <if test="itemId != null "> item_id = #{itemId} and</if>
+            <if test="companyId != null "> company_id = #{companyId} and</if>
+            <if test="createPId != null "> create_p_id = #{createPId} and</if>
+            <if test="zhenggaiPId != null "> zhenggai_p_id = #{zhenggaiPId} and</if>
+            <if test="level != null"> danger_level > 1 and</if>
+            <if test="dangerState != null" >danger_state = #{dangerState} and</if>
+            1=1
+    </select>
+
+    <update id="uploadDangerImg" >
+        update danger set create_img = #{uuid} where danger_id = #{dangerId}
+    </update>
+
+    <update id="uploadZhenggaiImg" >
+        update danger set update_img = #{uuid} where danger_id = #{dangerId}
+    </update>
+
+    <resultMap id="dangerMap" type="com.example.springboot1.model.Danger">
+        <result property="dangerId" column="danger_id"/>
+        <result property="dangerAreaId" column="danger_area_id"/>
+        <result property="dangerName" column="danger_name"/>
+        <result property="companyId" column="company_id"/>
+        <result property="dangerType" column="danger_type"/>
+        <result property="dangerDec" column="danger_dec"/>
+        <result property="zhenggaiDec" column="zhenggai_dec"/>
+        <result property="dangerState" column="danger_state"/>
+        <result property="itemId" column="item_id"/>
+        <result property="dangerLevel" column="danger_level"/>
+        <result property="createTime" column="create_time"/>
+        <result property="limitTime" column="limit_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createImg" column="create_img"/>
+        <result property="updateImg" column="update_img"/>
+        <result property="zhenggaiPId" column="zhenggai_p_id"/>
+        <result property="createPId" column="create_p_id"/>
+        <result property="zhenggaiLog" column="zhenggai_log"/>
+        <result property="reviewPId" column="review_P_id"/>
+        <result property="reviewLog" column="review_log"/>
+        <result property="reviewTime" column="review_time"/>
+
+    </resultMap>
+
+    <select id="queryDanger" resultMap="dangerMap">
+        select * from danger
+        where
+        <if test="dangerLevel != null">danger_level = #{ dangerLevel } AND</if>
+        <if test="dangerType != null">danger_type = #{dangerType} AND</if>
+        <if test="dangerState != null">danger_state = #{ dangerState } AND</if>
+        <if test="companyId != null">company_id = #{companyId} AND</if>
+        <if test="itemId != null">item_id = #{itemId} AND</if>
+        <if test="zhenggaiPId != null">zhenggai_p_id = #{zhenggaiPId} AND</if>
+        <if test="createPId != null">create_p_id = #{createPId} AND</if>
+        1=1
+    </select>
+
+    <select id="queryDanger2" resultMap="dangerMap">
+        select * from danger where danger_state = 1
+    </select>
+
+    <update id="updateDangerState" >
+        update danger set danger_state = 0 where danger_id = #{dangerId}
+    </update>
+
+
+    <select id="queryDangerImg" resultType="String">
+      select create_img from danger where danger_id = #{dangerId}
+    </select>
+
+    <select id="queryUpdateImg" resultType="String">
+        select update_img from danger where danger_id = #{dangerId}
+    </select>
+
+
+
+    <resultMap id="dataMap" type="com.example.springboot1.model.Data">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+
+    <select id="queryDangerType" resultMap="dataMap">
+        select type_id as id,
+            type_name as name
+        from danger_type
+    </select>
+    <select id="queryDangerArea" resultMap="dataMap">
+        select id as id,
+               area_name as name
+        from danger_area
+    </select>
+    <select id="queryCompanyPart" resultMap="dataMap">
+        select id as id,
+               company_name as name
+        from company where company_type = 2
+    </select>
+
+    <select id="queryUserByCompany" resultMap="dataMap">
+        select id as id,
+            name as name
+        from xmxj.user where company_id = #{companyId}
+    </select>
+
+    <select id="queryUser" resultMap="dataMap">
+        select id as id,
+               name as name
+        from xmxj.user
+        where
+            <if test="identify != null"> identify = #{identify} and</if>
+        <if test="companyId != null"> company_id in ( #{companyId} ) and</if>
+        <if test="name != null"> name = #{name} and</if>
+        1=1
+    </select>
+
+
+    <select id="queryUserForWeb" resultType="com.example.springboot1.model.User">
+        select *
+        from xmxj.user
+        where
+        <if test="identify != null"> identify = #{identify} and</if>
+        <if test="companyId != null"> company_id = #{companyId} and</if>
+        <if test="name != null"> name like concat('%',#{name},'%')  and</if>
+        1=1
+    </select>
+
+    <insert id="newDanger"
+            useGeneratedKeys="true"
+            keyProperty="dangerId"
+            parameterType="com.example.springboot1.model.Danger">
+        insert into danger(
+                   danger_name,
+                   danger_area_id,
+                   company_id,
+                   danger_type,
+                   danger_dec,
+                   zhenggai_dec,
+                   danger_state,
+                   item_id,
+                   danger_level,
+                   create_time,
+                   limit_time,
+                   zhenggai_p_id,
+                   create_p_id)
+        values(#{dangerName},
+               #{dangerAreaId},
+               #{companyId},
+               #{dangerType},
+               #{dangerDec},
+               #{zhenggaiDec},
+               #{dangerState},
+               #{itemId},
+               #{dangerLevel},
+               #{createTime},
+               #{limitTime},
+               #{zhenggaiPId},
+               #{createPId})
+    </insert>
+
+    <update id="updateDanger" >
+        update danger set danger_name=#{dangerName},
+                           danger_area_id= #{ dangerAreaId },
+                           danger_type= #{ dangerType },
+                           danger_dec= #{ dangerDec },
+                           zhenggai_dec= #{ zhenggaiDec },
+                           danger_state= #{ dangerState },
+                           item_id= #{ itemId },
+                           danger_level= #{ dangerLevel },
+                           limit_time= #{ limitTime },
+                           zhenggai_p_id= #{ zhenggaiPId },
+                           create_p_id= #{ createPId }
+        where danger_id= #{ dangerId }
+    </update>
+
+    <update id="zhenggai" >
+        update danger set
+            zhenggai_log = #{zhenggaiLog},
+            danger_state= #{dangerState},
+            update_time = #{updateTime}
+        where danger_id = #{dangerId}
+    </update>
+
+    <update id="review" >
+        update danger set
+            review_log = #{reviewLog},
+            danger_state = #{dangerState},
+            review_time = #{reviewTime},
+            review_p_id = #{reviewPId}
+        where danger_id = #{dangerId}
+    </update>
+
+    <select id="queryDangerByState" resultType="com.example.springboot1.model.DangerByDate" >
+        select count(*)as count,
+                create_time as createTime,
+                danger_level as dangerLevel
+        from danger
+        where
+            <if test="itemId != null"> item_id = #{itemId} and</if>
+            <if test="companyId != null"> company_id = #{companyId} and</if>
+            <if test="dangerLevel != null">danger_level = #{dangerLevel} and</if>
+            create_time <![CDATA[ > ]]> DATE_SUB(NOW(),INTERVAL 8 DAY) and
+            create_time <![CDATA[ < ]]> CURDATE()
+        group by create_time,danger_level
+    </select>
+
+    <select id="queryCountForCompany" resultType="com.example.springboot1.model.ListForCompany" >
+        select count(*) as count,
+                company_name as companyName,
+                danger_state as dangerState
+        from danger
+        left join company
+            on company.id = danger.company_id
+        where
+        <if test="itemId != null">item_id = #{itemId} and</if>1=1
+        group by danger_state,company_name
+    </select>
+
+    <select id="queryDangerForType" resultType="com.example.springboot1.model.CountForType" >
+        select count(*) as count,
+               type_name as typeName
+        from danger
+            left join danger_type
+                on danger_type.type_id = danger.danger_type
+        where
+            <if test="itemId != null">item_id = #{itemId} and</if>
+            <if test="companyId != null">item_id = #{companyId} and</if> 1 = 1
+        group by type_name
+    </select>
+
+
+    <select id="queryDangerForArea" resultType="com.example.springboot1.model.CountForArea" >
+        select count(*) as count,
+              danger_level as dangerLevel,
+              area_name as dangerArea
+        from danger
+        left join danger_area
+        on danger_area.id = danger.danger_area_id
+        where
+        <if test="itemId != null">item_id = #{itemId} and</if>
+       1 = 1
+        group by danger_level,area_name
+    </select>
+
+
+    <select id="queryCountForUser" resultType="com.example.springboot1.model.CountForUser" >
+        select count(*) as count,
+        danger_state as dangerState,
+        name as userName
+        from danger
+        left join xmxj.user
+        on xmxj.user.id = danger.zhenggai_p_id
+        where
+        <if test="itemId != null">item_id = #{itemId} and</if>
+        1 = 1
+        group by danger_state,name
+    </select>
+
+
+    <select id="queryUserImg" resultType="String">
+        select img from xmxj.user where id = #{userId}
+    </select>
+
+
+    <update id="updateUserImg" >
+        update xmxj.user set img = #{imgData} where id = #{userId}
+    </update>
+
+    <insert id="addItem">
+        insert into item(
+            item_name,
+            company_id,
+            manage_id,
+            safer_office_id,
+            responser_id,
+            state)
+        values(#{itemName},
+            #{companyId},
+            #{manageId},
+            #{saferOfficeId},
+            #{responserId},
+            #{state})
+    </insert>
+
+    <update id="updateItem">
+        update item set
+            item_name = #{itemName},
+            company_id = #{companyId},
+            manage_id = #{manageId},
+            safer_office_id = #{saferOfficeId},
+            responser_id = #{responserId},
+            state = #{state}
+        where id = #{id}
+    </update>
+
+    <update id="reEdit" >
+        update danger set
+            limit_time = #{limitTime},
+            zhenggai_dec = #{zhenggaiDec},
+            danger_state = #{dangerState},
+            update_img = null ,
+            update_time = null,
+            zhenggai_log = null
+        where danger_id = #{dangerId}
+    </update>
+
+    <update id="updateUserImgByWeb">
+        update xmxj.user set
+            img = #{uuid}
+        where id = #{userId}
+    </update>
+
+    <insert id="addUser" >
+        insert xmxj.user(name,password,identify,company_id)
+                values (#{name}, #{password},#{identify},#{companyId})
+    </insert>
+
+    <update id="editUser" >
+        update xmxj.user set
+            name = #{name},
+            password = #{password},
+            identify = #{identify},
+            company_id = #{companyId},
+            address = #{address},
+            phone = #{phone}
+        where id = #{id}
+    </update>
+
+    <insert id="addCompany">
+        insert into company(company_name, company_dec, company_type)
+        values(#{company_name},#{companyDec},#{type})
+    </insert>
+
+    <update id="editCompany">
+        update company set
+            company_name =  #{company_name},
+            company_dec =  #{companyDec},
+            company_type = #{type}
+        where id = #{id}
+    </update>
+
+    <update id="updateItemState" >
+        update item set state = #{state} where id = #{itemId}
+    </update>
+
+    <insert id="insertReport" >
+        insert into
+            report(user_id,report,create_date,month,state)
+            values (#{userId},#{report},#{createDate},#{month},#{state})
+
+    </insert>
+
+    <update id="updateReport" >
+        update report set
+            report = #{report},
+            state = #{state}
+        where user_id = #{userId} and create_date = #{createDate}
+    </update>
+
+    <resultMap id="reportMap" type="com.example.springboot1.model.Report">
+        <result column="report_id" property="reportId"/>
+        <result column="user_id" property="userId"/>
+        <result column="report" property="report"/>
+        <result column="create_date" property="createDate"/>
+        <result column="month" property="month"/>
+        <result column="state" property="state"/>
+    </resultMap>
+
+    <select id="queryReport" resultMap="reportMap">
+        select * from report
+        where
+            <if test="userId != null"> user_id = #{userId} and</if>
+        <if test="report != null"> report = #{report} and</if>
+        <if test="createDate != null"> create_date = #{createDate} and</if>
+        <if test="month != null"> month = #{month} and</if>
+        <if test="state != null"> state = #{state} and</if>
+        1=1
+    </select>
+
+    <update id="updatePassword">
+        update xmxj.user set
+            password = #{password}
+        where id = #{id}
+    </update>
+
+    <resultMap id="reformMap" type="com.example.springboot1.model.Reform">
+        <result property="id" column="id"/>
+        <result property="dangerId" column="danger_id"/>
+        <result property="zhenggaiPId" column="zhenggai_pid"/>
+        <result property="reformLog" column="reform_log"/>
+        <result property="reformDate" column="reform_date"/>
+        <result property="dangerData" column="dangerData"/>
+    </resultMap>
+
+    <select id="queryReform" resultMap="reformMap">
+        select * from reform
+        where
+            <if test="id != null"> id = #{id} and</if>
+        <if test="dangerId != null">danger_id = #{dangerId} and</if>
+        <if test="zhenggaiPId != null">zhenggai_pid = #{zhenggaiPId} and</if>
+        1=1
+    </select>
+
+    <insert id="insertReform">
+        insert into
+            reform(danger_id, zhenggai_pid, reform_log,reform_date,danger_data)
+        values(#{dangerId},#{zhenggaiPId},#{reformLog},#{reformDate},#{dangerData})
+    </insert>
+</mapper>
